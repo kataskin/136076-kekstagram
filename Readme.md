@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url] [![Dependency status][dependency-image]][dependency-url]
 
 * Студент: [Мария Новокович](https://up.htmlacademy.ru/javascript/4/user/136076).
-* Наставник: `Неизвестно`.
+* Наставник: [Дмитрий Наумов](https://htmlacademy.ru/profile/id194254).
 
 ---
 
