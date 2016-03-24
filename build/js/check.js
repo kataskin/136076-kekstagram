@@ -9,7 +9,7 @@ function getMessage (a, b) {
   }
 
   else if (typeof a === "number") {
-    return "Переданное SVG-изображение содержит " + a + "объектов и " + b * 4 + "атрибутов";
+    return "Переданное SVG-изображение содержит " + a + " объектов и " + b * 4 + " атрибутов";
   }
 
   else if (typeof a === "object" && typeof b === "object") {
