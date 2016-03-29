@@ -115,28 +115,19 @@
       this._ctx.fillRect(displX, displY, this._container.width, this._container.height);
       this._ctx.restore();
 
-      // Параметры линии.
-      // NB! Такие параметры сохраняются на время всего процесса отрисовки
-      // canvas'a поэтому важно вовремя поменять их, если нужно начать отрисовку
-      // чего-либо с другой обводкой.
-
-      // Толщина линии.
-      this._ctx.lineWidth = borderLineWidth;
-      // Цвет обводки.
-      this._ctx.strokeStyle = '#ffe753';
-      // Размер штрихов. Первый элемент массива задает длину штриха, второй
-      // расстояние между соседними штрихами.
-      this._ctx.setLineDash([15, 10]);
-      // Смещение первого штриха от начала линии.
-      this._ctx.lineDashOffset = 7;
-
-      // Отрисовка прямоугольника, обозначающего область изображения после
-      // кадрирования. Координаты задаются от центра.
-      this._ctx.strokeRect(
-        (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-        (-this._resizeConstraint.side / 2) - this._ctx.lineWidth / 2,
-        this._resizeConstraint.side + this._ctx.lineWidth,
-        this._resizeConstraint.side + this._ctx.lineWidth);
+      this._ctx.fillStyle = '#ffe753';
+      for (var i = -this._resizeConstraint.side / 2 - borderLineWidth / 2; this._resizeConstraint.side / 2 + borderLineWidth / 2 >= i; i = i + 6 + borderLineWidth) {
+        this._ctx.beginPath();
+        this._ctx.arc(i, -this._resizeConstraint.side / 2 - borderLineWidth / 2, 3, 0, Math.PI * 2, true);
+        this._ctx.arc(this._resizeConstraint.side / 2 + borderLineWidth / 2, i, 3, 0, Math.PI * 2, true);
+        this._ctx.closePath();
+        this._ctx.fill();
+        this._ctx.beginPath();
+        this._ctx.arc(i, this._resizeConstraint.side / 2 + borderLineWidth / 2, 3, 0, Math.PI * 2, true);
+        this._ctx.arc(-this._resizeConstraint.side / 2 - borderLineWidth / 2, i, 3, 0, Math.PI * 2, true);
+        this._ctx.closePath();
+        this._ctx.fill();
+      }
 
       var text = this._image.naturalWidth + ' x ' + this._image.naturalHeight;
       this._ctx.fillStyle = '#ffffff';
