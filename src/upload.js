@@ -68,11 +68,57 @@
   }
 
   /**
-   * Проверяет, валидны ли данные, в форме кадрирования.
+    *
+    */
+  var left = document.querySelector('#resize-x');
+  var top = document.querySelector('#resize-y');
+  var side = document.querySelector('#resize-size');
+  var formSubmit = document.querySelector('.upload-form-controls-fwd');
+
+  var maxPhotoSide = function(leftPad, topPad) {
+    side.max = Math.min(
+    currentResizer._image.naturalWidth - leftPad,
+    currentResizer._image.naturalHeight - topPad);
+  };
+
+  left.onchange = function() {
+    maxPhotoSide(left.value, top.value);
+    updateSubmitState();
+  };
+
+  top.onchange = function() {
+    maxPhotoSide(left.value, top.value);
+    updateSubmitState();
+  };
+
+  side.onchange = function() {
+    updateSubmitState();
+  };
+
+  /**
+   * Проверяет, валидны ли данные в форме кадрирования.
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    return true;
+    function isInRange(value, min, max) {
+      if (value === '') {
+        return false;
+      }
+      value = +value;
+      return (value >= min && value <= max);
+    }
+    return (isInRange(left.value, left.min, left.max) &&
+            isInRange(top.value, top.min, top.max) &&
+            isInRange(side.value, side.min, side.max));
+  }
+
+  function updateSubmitState() {
+    if( !resizeFormIsValid() ) {
+      formSubmit.setAttribute('disabled', 'disabled');
+    } else {
+      formSubmit.removeAttribute('disabled');
+    }
+
   }
 
   /**
@@ -155,6 +201,16 @@
           currentResizer = new Resizer(fileReader.result);
           currentResizer.setElement(resizeForm);
           uploadMessage.classList.add('invisible');
+
+          left.min = 0;
+          left.max = currentResizer._image.naturalWidth;
+          top.min = 0;
+          top.max = currentResizer._image.naturalHeight;
+          side.min = 0;
+          side.value = 240;
+          //left.value = 0;
+          //top.value = 0;
+          updateSubmitState();
 
           uploadForm.classList.add('invisible');
           resizeForm.classList.remove('invisible');
