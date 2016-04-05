@@ -7,6 +7,8 @@
 
 'use strict';
 
+var browserCookies = require('browser-cookies');
+
 (function() {
   /** @enum {string} */
   var FileType = {
@@ -119,6 +121,17 @@
       formSubmit.removeAttribute('disabled');
     }
 
+  }
+
+  var filterChrome = document.querySelector('#upload-filter-chrome');
+  var filterSepia = document.querySelector('#upload-filter-sepia');
+
+  var filter = browserCookies.get('filter');
+
+  if (filter === 'chrome') {
+    filterChrome.setAttribute('checked', 'checked');
+  } else if (filter === 'sepia') {
+    filterSepia.setAttribute('checked', 'checked');
   }
 
   /**
@@ -255,6 +268,8 @@
 
       resizeForm.classList.add('invisible');
       filterForm.classList.remove('invisible');
+
+      applyFilter();
     }
   };
 
@@ -288,7 +303,7 @@
    * Обработчик изменения фильтра. Добавляет класс из filterMap соответствующий
    * выбранному значению в форме.
    */
-  filterForm.onchange = function() {
+  function applyFilter() {
     if (!filterMap) {
       // Ленивая инициализация. Объект не создается до тех пор, пока
       // не понадобится прочитать его в первый раз, а после этого запоминается
@@ -300,6 +315,7 @@
       };
     }
 
+    // а не проще ли: var selectedFilter = filterForm['upload-filter'].value;
     var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
       return item.checked;
     })[0].value;
@@ -308,7 +324,30 @@
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
     // состояние или просто перезаписывать.
     filterImage.className = 'filter-image-preview ' + filterMap[selectedFilter];
-  };
+
+    // save
+    var days = getDateDifferenceInDays(getMyLastBirthday(), new Date());
+    browserCookies.set('filter', selectedFilter, {expires: days});
+  }
+  filterForm.onchange = applyFilter;
+
+  function getMyLastBirthday() {
+    var today = new Date();
+    var d = today.getDate();
+    var m = today.getMonth() + 1;
+    var y = today.getFullYear();
+    var Y;
+    if (m > 4 || (m === 4 && d > 19)) {
+      Y = y;
+    } else {
+      Y = y - 1;
+    }
+    return new Date(Y, 3, 19);
+  }
+
+  function getDateDifferenceInDays(firstDate, secondDate) {
+    return (secondDate - firstDate) / 24 / 60 / 60 / 1000;
+  }
 
   cleanupResizer();
   updateBackground();
