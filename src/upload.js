@@ -43,6 +43,11 @@ var browserCookies = require('browser-cookies');
    */
   var currentResizer;
 
+  var formLeft = document.querySelector('#resize-x');
+  var formTop = document.querySelector('#resize-y');
+  var formSide = document.querySelector('#resize-size');
+  var formSubmit = document.querySelector('.upload-form-controls-fwd');
+
   /**
    * Удаляет текущий объект {@link Resizer}, чтобы создать новый с другим
    * изображением.
@@ -69,33 +74,32 @@ var browserCookies = require('browser-cookies');
     backgroundElement.style.backgroundImage = 'url(' + images[randomImageNumber] + ')';
   }
 
-  /**
-    *
-    */
-  var left = document.querySelector('#resize-x');
-  var top = document.querySelector('#resize-y');
-  var side = document.querySelector('#resize-size');
-  var formSubmit = document.querySelector('.upload-form-controls-fwd');
-
-  var maxPhotoSide = function(leftPad, topPad) {
-    side.max = Math.min(
-    currentResizer._image.naturalWidth - leftPad,
-    currentResizer._image.naturalHeight - topPad);
+  var updateResizerBoundLimits = function() {
+    formSide.max = Math.min(
+      currentResizer._image.naturalWidth - formLeft.value,
+      currentResizer._image.naturalHeight - formTop.value);
   };
 
-  left.onchange = function() {
-    maxPhotoSide(left.value, top.value);
+  window.addEventListener('resizerchange', function() {
+    var con = currentResizer.getConstraint();
+    formLeft.value = Math.round(con.x);
+    formTop.value = Math.round(con.y);
+    formSide.value = Math.round(con.side);
+    updateResizerBoundLimits();
     updateSubmitState();
-  };
+  });
 
-  top.onchange = function() {
-    maxPhotoSide(left.value, top.value);
-    updateSubmitState();
-  };
-
-  side.onchange = function() {
-    updateSubmitState();
-  };
+  document.querySelector('.upload-resize-controls')
+          .addEventListener('change', function(evt) {
+            switch (evt.target.name) {
+              case 'x':
+              case 'y':
+                updateResizerBoundLimits();
+                // fall through
+              case 'size':
+                updateSubmitState();
+            }
+          });
 
   /**
    * Проверяет, валидны ли данные в форме кадрирования.
@@ -109,29 +113,29 @@ var browserCookies = require('browser-cookies');
       value = +value;
       return (value >= min && value <= max);
     }
-    return (isInRange(left.value, left.min, left.max) &&
-            isInRange(top.value, top.min, top.max) &&
-            isInRange(side.value, side.min, side.max));
+    function isElementValueAllowed(input) {
+      return isInRange(input.value, input.min, input.max);
+    }
+    return [formLeft, formTop, formSide]
+        .every(isElementValueAllowed);
   }
 
   function updateSubmitState() {
-    if( !resizeFormIsValid() ) {
+    if(!resizeFormIsValid()) {
       formSubmit.setAttribute('disabled', 'disabled');
     } else {
       formSubmit.removeAttribute('disabled');
+      currentResizer.setConstraint(
+        +formLeft.value,
+        +formTop.value,
+        +formSide.value);
     }
-
   }
 
-  var filterChrome = document.querySelector('#upload-filter-chrome');
-  var filterSepia = document.querySelector('#upload-filter-sepia');
-
   var filter = browserCookies.get('filter');
-
-  if (filter === 'chrome') {
-    filterChrome.setAttribute('checked', 'checked');
-  } else if (filter === 'sepia') {
-    filterSepia.setAttribute('checked', 'checked');
+  var activeFilter = document.querySelector('#upload-filter-' + filter);
+  if (activeFilter !== null) {
+    activeFilter.setAttribute('checked', 'checked');
   }
 
   /**
@@ -198,7 +202,7 @@ var browserCookies = require('browser-cookies');
    * и показывается форма кадрирования.
    * @param {Event} evt
    */
-  uploadForm.onchange = function(evt) {
+  uploadForm.addEventListener('change', function(evt) {
     var element = evt.target;
     if (element.id === 'upload-file') {
       // Проверка типа загружаемого файла, тип должен быть изображением
@@ -208,28 +212,23 @@ var browserCookies = require('browser-cookies');
 
         showMessage(Action.UPLOADING);
 
-        fileReader.onload = function() {
+        fileReader.addEventListener('load', function() {
           cleanupResizer();
 
           currentResizer = new Resizer(fileReader.result);
           currentResizer.setElement(resizeForm);
           uploadMessage.classList.add('invisible');
 
-          left.min = 0;
-          left.max = currentResizer._image.naturalWidth;
-          top.min = 0;
-          top.max = currentResizer._image.naturalHeight;
-          side.min = 0;
-          side.value = 240;
-          //left.value = 0;
-          //top.value = 0;
+          formLeft.min = formTop.min = formSide.min = 0;
+          formLeft.max = currentResizer._image.naturalWidth;
+          formTop.max = currentResizer._image.naturalHeight;
           updateSubmitState();
 
           uploadForm.classList.add('invisible');
           resizeForm.classList.remove('invisible');
 
           hideMessage();
-        };
+        });
 
         fileReader.readAsDataURL(element.files[0]);
       } else {
@@ -238,14 +237,14 @@ var browserCookies = require('browser-cookies');
         showMessage(Action.ERROR);
       }
     }
-  };
+  });
 
   /**
    * Обработка сброса формы кадрирования. Возвращает в начальное состояние
    * и обновляет фон.
    * @param {Event} evt
    */
-  resizeForm.onreset = function(evt) {
+  resizeForm.addEventListener('reset', function(evt) {
     evt.preventDefault();
 
     cleanupResizer();
@@ -253,14 +252,14 @@ var browserCookies = require('browser-cookies');
 
     resizeForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Обработка отправки формы кадрирования. Если форма валидна, экспортирует
    * кропнутое изображение в форму добавления фильтра и показывает ее.
    * @param {Event} evt
    */
-  resizeForm.onsubmit = function(evt) {
+  resizeForm.addEventListener('submit', function(evt) {
     evt.preventDefault();
 
     if (resizeFormIsValid()) {
@@ -271,25 +270,25 @@ var browserCookies = require('browser-cookies');
 
       applyFilter();
     }
-  };
+  });
 
   /**
    * Сброс формы фильтра. Показывает форму кадрирования.
    * @param {Event} evt
    */
-  filterForm.onreset = function(evt) {
+  filterForm.addEventListener('reset', function(evt) {
     evt.preventDefault();
 
     filterForm.classList.add('invisible');
     resizeForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Отправка формы фильтра. Возвращает в начальное состояние, предварительно
    * записав сохраненный фильтр в cookie.
    * @param {Event} evt
    */
-  filterForm.onsubmit = function(evt) {
+  filterForm.addEventListener('submit', function(evt) {
     evt.preventDefault();
 
     cleanupResizer();
@@ -297,7 +296,7 @@ var browserCookies = require('browser-cookies');
 
     filterForm.classList.add('invisible');
     uploadForm.classList.remove('invisible');
-  };
+  });
 
   /**
    * Обработчик изменения фильтра. Добавляет класс из filterMap соответствующий
@@ -315,10 +314,7 @@ var browserCookies = require('browser-cookies');
       };
     }
 
-    // а не проще ли: var selectedFilter = filterForm['upload-filter'].value;
-    var selectedFilter = [].filter.call(filterForm['upload-filter'], function(item) {
-      return item.checked;
-    })[0].value;
+    var selectedFilter = filterForm['upload-filter'].value;
 
     // Класс перезаписывается, а не обновляется через classList потому что нужно
     // убрать предыдущий примененный класс. Для этого нужно или запоминать его
@@ -329,22 +325,20 @@ var browserCookies = require('browser-cookies');
     var days = getDateDifferenceInDays(getMyLastBirthday(), new Date());
     browserCookies.set('filter', selectedFilter, {expires: days});
   }
-  filterForm.onchange = applyFilter;
+  filterForm.addEventListener('change', applyFilter);
 
   function getMyLastBirthday() {
     var today = new Date();
+
     var d = today.getDate();
     var m = today.getMonth() + 1;
     var y = today.getFullYear();
-    var Y;
-    if (m > 4 || (m === 4 && d > 19)) {
-      Y = y;
-    } else {
-      Y = y - 1;
-    }
-    return new Date(Y, 3, 19);
-  }
 
+    if (m < 4 || (m === 4 && d < 19)) {
+      y--;
+    }
+    return new Date(y, 4 - 1, 19);
+  }
   function getDateDifferenceInDays(firstDate, secondDate) {
     return (secondDate - firstDate) / 24 / 60 / 60 / 1000;
   }
