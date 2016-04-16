@@ -8,6 +8,7 @@
 'use strict';
 
 var browserCookies = require('browser-cookies');
+var utils = require('../utils');
 
 (function() {
   /** @enum {string} */
@@ -86,7 +87,7 @@ var browserCookies = require('browser-cookies');
     formTop.value = Math.round(con.y);
     formSide.value = Math.round(con.side);
     updateResizerBoundLimits();
-    updateSubmitState();
+    updateSubmitState(false);
   });
 
   document.querySelector('.upload-resize-controls')
@@ -97,7 +98,7 @@ var browserCookies = require('browser-cookies');
                 updateResizerBoundLimits();
                 // fall through
               case 'size':
-                updateSubmitState();
+                updateSubmitState(true);
             }
           });
 
@@ -120,15 +121,17 @@ var browserCookies = require('browser-cookies');
         .every(isElementValueAllowed);
   }
 
-  function updateSubmitState() {
+  function updateSubmitState(updateConstraint) {
     if(!resizeFormIsValid()) {
       formSubmit.setAttribute('disabled', 'disabled');
     } else {
       formSubmit.removeAttribute('disabled');
-      currentResizer.setConstraint(
-        +formLeft.value,
-        +formTop.value,
-        +formSide.value);
+      if (updateConstraint) {
+        currentResizer.setConstraint(
+          +formLeft.value,
+          +formTop.value,
+          +formSide.value);
+      }
     }
   }
 
@@ -222,7 +225,6 @@ var browserCookies = require('browser-cookies');
           formLeft.min = formTop.min = formSide.min = 0;
           formLeft.max = currentResizer._image.naturalWidth;
           formTop.max = currentResizer._image.naturalHeight;
-          updateSubmitState();
 
           uploadForm.classList.add('invisible');
           resizeForm.classList.remove('invisible');
@@ -322,26 +324,10 @@ var browserCookies = require('browser-cookies');
     filterImage.className = 'filter-image-preview ' + filterMap[selectedFilter];
 
     // save
-    var days = getDateDifferenceInDays(getMyLastBirthday(), new Date());
-    browserCookies.set('filter', selectedFilter, {expires: days});
+    var days = utils.getDateDifferenceInDays(utils.getMyLastBirthday(), new Date());
+    browserCookies.set('filter', selectedFilter, { expires: days });
   }
   filterForm.addEventListener('change', applyFilter);
-
-  function getMyLastBirthday() {
-    var today = new Date();
-
-    var d = today.getDate();
-    var m = today.getMonth() + 1;
-    var y = today.getFullYear();
-
-    if (m < 4 || (m === 4 && d < 19)) {
-      y--;
-    }
-    return new Date(y, 4 - 1, 19);
-  }
-  function getDateDifferenceInDays(firstDate, secondDate) {
-    return (secondDate - firstDate) / 24 / 60 / 60 / 1000;
-  }
 
   cleanupResizer();
   updateBackground();
