@@ -1,6 +1,7 @@
 'use strict';
 
 var render = require('./render');
+var gallery = require('../gallery');
 
 // форма с кнопками сортировки
 var filtersForm = document.querySelector('.filters');
@@ -10,6 +11,10 @@ var picturesFiltered = [];
 
 var applyFilter = function(filter) {
   applyFilterToData(picturesSource, filter, picturesFiltered);
+  picturesFiltered.forEach(function(pic, index) {
+    pic.index = index;
+  });
+  gallery.save(picturesFiltered);
   render.resetPage();
   render.renderNextPages(picturesFiltered);
 };
