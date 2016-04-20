@@ -31,6 +31,9 @@ module.exports = {
     return ('status' in xhr) &&
      (xhr.status === 200 ||
       xhr.status === 304);
-  }
+  },
 
+  isActivationEvent: function(evt) {
+    return evt.keyCode === 13;
+  }
 };
