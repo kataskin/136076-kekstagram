@@ -14,7 +14,7 @@ var applyFilter = function(filter) {
   picturesFiltered.forEach(function(pic, index) {
     pic.index = index;
   });
-  gallery.save(picturesFiltered);
+  gallery.update(picturesFiltered);
   render.resetPage();
   render.renderNextPages(picturesFiltered);
 };
