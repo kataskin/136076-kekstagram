@@ -2,6 +2,7 @@
 
 var utils = require('../utils');
 var container = require('./container');
+var gallery = require('../gallery');
 
 // набор шаблонов
 var templateElement = document.getElementById('picture-template');
@@ -30,6 +31,10 @@ var renderPicture = function(picture) {
   image.src = picture.url;
   element.querySelector('.picture-comments').textContent = picture.comments;
   element.querySelector('.picture-likes').textContent = picture.likes;
+  element.addEventListener('click', function(evt) {
+    evt.preventDefault();
+    gallery.show(picture.index);
+  });
   container.appendChild(element);
   return element;
 };
