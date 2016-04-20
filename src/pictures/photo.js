@@ -1,8 +1,8 @@
 'use strict';
 
 var generator = require('./generator');
-var gallery = require('../gallery');
 var utils = require('../utils');
+var gallery = require('../gallery');
 
 var Photo = function(data) {
   this.data = data;

@@ -38,12 +38,10 @@ module.exports = {
 
   resetPage: function() {
     pageNumber = 0;
+    clearRenderedPhotos();
   },
 
   renderNextPages: function(pictures) {
-    if (pageNumber === 0) {
-      clearRenderedPhotos();
-    }
     while (utils.isBottomReached(container) &&
            utils.isNextPageAvailable(pictures, pageSize, pageNumber)) {
       renderCurrentPage(pictures);
