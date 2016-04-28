@@ -10,18 +10,61 @@ var Gallery = function() {
   this.currentPictureIndex = 0;
   this.imageOnLoad = this.imageOnLoad.bind(this);
   this.imageOnError = this.imageOnError.bind(this);
+  this.restoreFromHash = this.restoreFromHash.bind(this);
+  window.addEventListener('hashchange', this.restoreFromHash);
 };
 
-Gallery.prototype.show = function(startIndex) {
-  this.currentPictureIndex = startIndex;
-  this.showPicture();
-  this.showNextPicture = this.showNextPicture.bind(this);
-  this.galleryImage.addEventListener('click', this.showNextPicture);
-  this.onDocumentKeyDown = this.onDocumentKeyDown.bind(this);
-  document.addEventListener('keydown', this.onDocumentKeyDown);
-  this.hideGalleryByClick = this.hideGalleryByClick.bind(this);
-  this.galleryOverlay.addEventListener('click', this.hideGalleryByClick);
-  this.galleryOverlay.classList.remove('invisible');
+Gallery.prototype.restoreFromHash = function() {
+  var regexp = /#photo\/(.*)/i;
+  var match = location.hash.match(regexp);
+  if (match !== null && match.length > 1) {
+    var url = match[1];
+    this.show(url);
+  } else {
+    this.hide();
+  }
+};
+
+Gallery.prototype.updateCurrentPictureIndex = function(item) {
+  switch (typeof item) {
+    case 'number':
+      this.currentPictureIndex = item;
+      break;
+    case 'string':
+      this.currentPictureIndex = this.pictures.findIndex(function(pic) {
+        return pic.url === item;
+      });
+      break;
+    default:
+      return;
+  }
+};
+Gallery.prototype.updateHash = function() {
+  var pic = this.pictures[this.currentPictureIndex];
+  location.hash = 'photo/' + pic.url;
+};
+
+Gallery.prototype.cleanHash = function() {
+  // при использовании пустой строки слетает скроллинг
+  location.hash = 'list';
+};
+
+Gallery.prototype.show = function(item) {
+  this.updateCurrentPictureIndex(item);
+  if (this.currentPictureIndex >= 0) {
+    this.showPicture();
+    if (this.galleryOverlay.classList.contains('invisible')) {
+      this.showNextPicture = this.showNextPicture.bind(this);
+      this.galleryImage.addEventListener('click', this.showNextPicture);
+      this.onDocumentKeyDown = this.onDocumentKeyDown.bind(this);
+      document.addEventListener('keydown', this.onDocumentKeyDown);
+      this.hideGalleryByClick = this.hideGalleryByClick.bind(this);
+      this.galleryOverlay.addEventListener('click', this.hideGalleryByClick);
+      this.galleryOverlay.classList.remove('invisible');
+    }
+  } else {
+    this.hide();
+  }
 };
 
 Gallery.prototype.imageOnLoad = function(evt) {
@@ -66,7 +109,7 @@ Gallery.prototype.onDocumentKeyDown = function(evt) {
   // hide: esc
   if (key === 27) {
     evt.preventDefault();
-    this.hide();
+    this.cleanHash();
   }
 };
 
@@ -75,29 +118,31 @@ Gallery.prototype.showNextPicture = function() {
   if (this.currentPictureIndex >= this.pictures.length) {
     this.currentPictureIndex = 0;
   }
-  this.showPicture();
+  this.updateHash();
 };
 Gallery.prototype.showPrevPicture = function() {
   this.currentPictureIndex--;
   if (this.currentPictureIndex < 0) {
     this.currentPictureIndex = this.pictures.length - 1;
   }
-  this.showPicture();
+  this.updateHash();
 };
 
 Gallery.prototype.hideGalleryByClick = function(evt) {
   var target = evt.target;
   if (target === this.galleryOverlay ||
       target === this.galleryCloseButton) {
-    this.hide();
+    this.cleanHash();
   }
 };
 
 Gallery.prototype.hide = function() {
-  this.galleryOverlay.classList.add('invisible');
-  this.galleryImage.removeEventListener('click', this.showNextPicture);
-  document.removeEventListener('keydown', this.onDocumentKeyDown);
-  this.galleryOverlay.removeEventListener('click', this.hideGalleryByClick);
+  if (!this.galleryOverlay.classList.contains('invisible')) {
+    this.galleryOverlay.classList.add('invisible');
+    this.galleryImage.removeEventListener('click', this.showNextPicture);
+    document.removeEventListener('keydown', this.onDocumentKeyDown);
+    this.galleryOverlay.removeEventListener('click', this.hideGalleryByClick);
+  }
 };
 
 module.exports = new Gallery();

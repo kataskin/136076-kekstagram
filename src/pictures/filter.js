@@ -15,9 +15,6 @@ var applyFilter = function(filter) {
     localStorage.setItem('pictureListFilter', filter);
   }
   applyFilterToData(picturesSource, filter, picturesFiltered);
-  picturesFiltered.forEach(function(pic, index) {
-    pic.index = index;
-  });
   gallery.update(picturesFiltered);
   render.resetPage();
   render.renderNextPages(picturesFiltered);

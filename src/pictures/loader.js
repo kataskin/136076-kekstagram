@@ -4,6 +4,7 @@ var container = require('./container');
 var filter = require('./filter');
 var scroll = require('./scroll');
 var utils = require('../utils');
+var gallery = require('../gallery');
 
 var DATA_URL = 'http://o0.github.io/assets/json/pictures.json';
 
@@ -42,6 +43,9 @@ xhr.onload = function() {
   container.classList.remove('pictures-loading');
   filter.enable(pictures);
   scroll.enable();
+
+  // применяем состояние галереи
+  gallery.restoreFromHash();
 };
 
 module.exports = {
