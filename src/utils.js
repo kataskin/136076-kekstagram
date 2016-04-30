@@ -35,5 +35,19 @@ module.exports = {
 
   isActivationEvent: function(evt) {
     return evt.keyCode === 13;
-  }
+  },
+
+  isLocalStorageSupported: (function() {
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
+    try {
+      var x = '__localStorage__test__';
+      localStorage.setItem(x, x);
+      localStorage.removeItem(x);
+      return true;
+    } catch(e) {
+      return false;
+    }
+  })()
 };

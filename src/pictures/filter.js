@@ -2,6 +2,7 @@
 
 var render = require('./render');
 var gallery = require('../gallery');
+var utils = require('../utils');
 
 // форма с кнопками сортировки
 var filtersForm = document.querySelector('.filters');
@@ -10,6 +11,9 @@ var picturesSource = [];
 var picturesFiltered = [];
 
 var applyFilter = function(filter) {
+  if (utils.isLocalStorageSupported) {
+    localStorage.setItem('pictureListFilter', filter);
+  }
   applyFilterToData(picturesSource, filter, picturesFiltered);
   picturesFiltered.forEach(function(pic, index) {
     pic.index = index;
@@ -74,7 +78,18 @@ module.exports = {
 
     filtersForm.classList.remove('hidden');
 
-    applyFilter();
+    if (utils.isLocalStorageSupported) {
+      var filter = localStorage.getItem('pictureListFilter');
+      var filterItem = filtersForm.querySelector('#' + filter);
+      if (filterItem !== null) {
+        filterItem.setAttribute('checked', 'checked');
+        applyFilter(filter);
+      } else {
+        applyFilter();
+      }
+    } else {
+      applyFilter();
+    }
   },
 
   getPicturesFiltered: function() {
