@@ -1,96 +1,103 @@
 'use strict';
 
 var Gallery = function() {
-  var self = this;
+  this.galleryOverlay = document.querySelector('.gallery-overlay');
+  this.galleryImage = this.galleryOverlay.querySelector('.gallery-overlay-image');
+  this.galleryLikesCount = this.galleryOverlay.querySelector('.likes-count');
+  this.galleryCommentsCount = this.galleryOverlay.querySelector('.comments-count');
+  this.galleryCloseButton = this.galleryOverlay.querySelector('.gallery-overlay-close');
+  this.pictures = [];
+  this.currentPictureIndex = 0;
+  this.imageOnLoad = this.imageOnLoad.bind(this);
+  this.imageOnError = this.imageOnError.bind(this);
+};
 
-  var galleryOverlay = document.querySelector('.gallery-overlay');
-  var galleryImage = galleryOverlay.querySelector('.gallery-overlay-image');
-  var galleryLikesCount = galleryOverlay.querySelector('.likes-count');
-  var galleryCommentsCount = galleryOverlay.querySelector('.comments-count');
-  var galleryCloseButton = galleryOverlay.querySelector('.gallery-overlay-close');
+Gallery.prototype.show = function(startIndex) {
+  this.currentPictureIndex = startIndex;
+  this.showPicture();
+  this.showNextPicture = this.showNextPicture.bind(this);
+  this.galleryImage.addEventListener('click', this.showNextPicture);
+  this.onDocumentKeyDown = this.onDocumentKeyDown.bind(this);
+  document.addEventListener('keydown', this.onDocumentKeyDown);
+  this.hideGalleryByClick = this.hideGalleryByClick.bind(this);
+  this.galleryOverlay.addEventListener('click', this.hideGalleryByClick);
+  this.galleryOverlay.classList.remove('invisible');
+};
 
-  var pictures = [];
-  var currentPictureIndex = 0;
+Gallery.prototype.imageOnLoad = function(evt) {
+  this.galleryImage.classList.remove('picture-load-failure');
+  this.galleryImage.setAttribute('src', evt.target.src);
+};
 
-  this.update = function(pics) {
-    pictures = pics;
-  };
+Gallery.prototype.imageOnError = function() {
+  this.galleryImage.classList.add('picture-load-failure');
+  this.galleryImage.setAttribute('src', 'img/logo-mask.png');
+};
 
-  this.show = function(startIndex) {
-    currentPictureIndex = startIndex;
-    showPicture();
-    galleryImage.addEventListener('click', showNextPicture);
-    document.addEventListener('keydown', onDocumentKeyDown);
-    galleryOverlay.addEventListener('click', hideGalleryByClick);
-    galleryOverlay.classList.remove('invisible');
-  };
+Gallery.prototype.showPicture = function() {
+  var picture = this.pictures[this.currentPictureIndex];
+  this.galleryLikesCount.textContent = picture.likes;
+  this.galleryCommentsCount.textContent = picture.comments;
+  var image = new Image();
+  image.onload = this.imageOnLoad;
+  image.onerror = this.imageOnError;
+  image.src = picture.url;
+};
 
-  var showPicture = function() {
-    var picture = pictures[currentPictureIndex];
-    galleryLikesCount.textContent = picture.likes;
-    galleryCommentsCount.textContent = picture.comments;
-    var image = new Image();
-    image.onload = function() {
-      galleryImage.classList.remove('picture-load-failure');
-      galleryImage.setAttribute('src', picture.url);
-    };
-    image.onerror = function() {
-      galleryImage.classList.add('picture-load-failure');
-      galleryImage.setAttribute('src', 'img/logo-mask.png');
-    };
-    image.src = picture.url;
-  };
+Gallery.prototype.update = function(pics) {
+  this.pictures = pics;
+};
 
-  var onDocumentKeyDown = function(evt) {
-    var key = evt.keyCode;
+Gallery.prototype.onDocumentKeyDown = function(evt) {
+  var key = evt.keyCode;
 
-    // next: → ↓ d s space
-    if ([39, 40, 68, 83, 32].includes(key)) {
-      evt.preventDefault();
-      showNextPicture();
-    } else
+  // next: → ↓ d s space
+  if ([39, 40, 68, 83, 32].includes(key)) {
+    evt.preventDefault();
+    this.showNextPicture();
+  } else
 
-    // prev: ← ↑ a w
-    if ([37, 38, 65, 87].includes(key)) {
-      evt.preventDefault();
-      showPrevPicture();
-    } else
+  // prev: ← ↑ a w
+  if ([37, 38, 65, 87].includes(key)) {
+    evt.preventDefault();
+    this.showPrevPicture();
+  } else
 
-    // hide: esc
-    if (key === 27) {
-      evt.preventDefault();
-      self.hide();
-    }
-  };
-  var showNextPicture = function() {
-    currentPictureIndex++;
-    if (currentPictureIndex >= pictures.length) {
-      currentPictureIndex = 0;
-    }
-    showPicture();
-  };
-  var showPrevPicture = function() {
-    currentPictureIndex--;
-    if (currentPictureIndex < 0) {
-      currentPictureIndex = pictures.length - 1;
-    }
-    showPicture();
-  };
+  // hide: esc
+  if (key === 27) {
+    evt.preventDefault();
+    this.hide();
+  }
+};
 
-  var hideGalleryByClick = function(evt) {
-    var target = evt.target;
-    if (target === galleryOverlay ||
-        target === galleryCloseButton) {
-      self.hide();
-    }
-  };
+Gallery.prototype.showNextPicture = function() {
+  this.currentPictureIndex++;
+  if (this.currentPictureIndex >= this.pictures.length) {
+    this.currentPictureIndex = 0;
+  }
+  this.showPicture();
+};
+Gallery.prototype.showPrevPicture = function() {
+  this.currentPictureIndex--;
+  if (this.currentPictureIndex < 0) {
+    this.currentPictureIndex = this.pictures.length - 1;
+  }
+  this.showPicture();
+};
 
-  this.hide = function() {
-    galleryOverlay.classList.add('invisible');
-    galleryImage.removeEventListener('click', showNextPicture);
-    document.removeEventListener('keydown', onDocumentKeyDown);
-    galleryOverlay.removeEventListener('click', hideGalleryByClick);
-  };
+Gallery.prototype.hideGalleryByClick = function(evt) {
+  var target = evt.target;
+  if (target === this.galleryOverlay ||
+      target === this.galleryCloseButton) {
+    this.hide();
+  }
+};
+
+Gallery.prototype.hide = function() {
+  this.galleryOverlay.classList.add('invisible');
+  this.galleryImage.removeEventListener('click', this.showNextPicture);
+  document.removeEventListener('keydown', this.onDocumentKeyDown);
+  this.galleryOverlay.removeEventListener('click', this.hideGalleryByClick);
 };
 
 module.exports = new Gallery();
