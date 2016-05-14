@@ -1,7 +1,7 @@
 'use strict';
 
 var filter = require('./filter');
-var scroll = require('./scroll');
+var scroller = require('./scroller');
 var utils = require('../utils');
 var gallery = require('../gallery');
 
@@ -35,7 +35,7 @@ var loadCompleted = function(evt) {
   // рендерим данные
   container.classList.remove('pictures-loading');
   filter.enable(pictures);
-  scroll.enable();
+  scroller();
 
   // применяем состояние галереи
   gallery.restoreFromHash();

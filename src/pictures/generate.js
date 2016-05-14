@@ -6,7 +6,7 @@ var template = ('content' in templates) ?
   templates.content.querySelector('.picture') :
   templates.querySelector('.picture');
 
-var create = function(picture) {
+var generate = function(picture) {
   var element = template.cloneNode(true);
   element.setAttribute('href', '#photo/' + picture.url);
   var img = element.querySelector('img');
@@ -37,6 +37,4 @@ var create = function(picture) {
   return element;
 };
 
-module.exports = {
-  create: create
-};
+module.exports = generate;

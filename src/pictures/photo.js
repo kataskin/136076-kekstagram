@@ -1,11 +1,11 @@
 'use strict';
 
-var generator = require('./generator');
+var generate = require('./generate');
 var utils = require('../utils');
 
 var Photo = function(data) {
   this.data = data;
-  this.element = generator.create(data);
+  this.element = generate(data);
   this.keyHandler = this.keyHandler.bind(this);
   this.element.addEventListener('keydown', this.keyHandler);
 };
