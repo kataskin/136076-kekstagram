@@ -1,10 +1,11 @@
 'use strict';
 
-var container = require('./container');
 var filter = require('./filter');
 var scroll = require('./scroll');
 var utils = require('../utils');
 var gallery = require('../gallery');
+
+var container = document.querySelector('.pictures');
 
 var DATA_URL = 'http://o0.github.io/assets/json/pictures.json';
 
@@ -52,15 +53,15 @@ var removeHandlers = function(xhr) {
   xhr.removeEventListener('timeout', displayLoadingFailure);
 };
 
-module.exports = {
-  load: function() {
-    var xhr = new XMLHttpRequest();
-    xhr.timeout = 10000;
-    xhr.addEventListener('load', loadCompleted);
-    xhr.addEventListener('error', displayLoadingFailure);
-    xhr.addEventListener('timeout', displayLoadingFailure);
-    xhr.open('GET', DATA_URL);
-    xhr.send();
-    container.classList.add('pictures-loading');
-  }
+var load = function() {
+  var xhr = new XMLHttpRequest();
+  xhr.timeout = 10000;
+  xhr.addEventListener('load', loadCompleted);
+  xhr.addEventListener('error', displayLoadingFailure);
+  xhr.addEventListener('timeout', displayLoadingFailure);
+  xhr.open('GET', DATA_URL);
+  xhr.send();
+  container.classList.add('pictures-loading');
 };
+
+module.exports = load;

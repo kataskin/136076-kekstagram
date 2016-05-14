@@ -1,8 +1,9 @@
 'use strict';
 
 var utils = require('../utils');
-var container = require('./container');
 var Photo = require('./photo');
+
+var container = document.querySelector('.pictures');
 
 // размер страницы
 var pageSize = 12;
