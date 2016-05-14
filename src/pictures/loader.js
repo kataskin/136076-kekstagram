@@ -8,27 +8,17 @@ var gallery = require('../gallery');
 
 var DATA_URL = 'http://o0.github.io/assets/json/pictures.json';
 
-var xhr = new XMLHttpRequest();
-
-xhr.timeout = 10000;
-xhr.addEventListener('timeout', displayLoadingFailure);
-xhr.addEventListener('error', displayLoadingFailure);
-var displayLoadingFailure = function() {
-  container.classList.remove('pictures-loading');
-  container.classList.add('pictures-failure');
-};
-
-xhr.onload = function() {
+var loadCompleted = function() {
 
   // HTTP-код ответа должен быть 200 или 304
-  if (!utils.isXHRStatusOk(xhr)) {
+  if (!utils.isXHRStatusOk(this)) {
     displayLoadingFailure();
     return;
   }
 
   // парсим и обрабатываем данные
   var pictures = [];
-  var response = xhr.response;
+  var response = this.response;
   try {
     pictures = JSON.parse(response);
     pictures.forEach(function(pic) {
@@ -48,8 +38,18 @@ xhr.onload = function() {
   gallery.restoreFromHash();
 };
 
+var displayLoadingFailure = function() {
+  container.classList.remove('pictures-loading');
+  container.classList.add('pictures-failure');
+};
+
 module.exports = {
   load: function() {
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 10000;
+    xhr.addEventListener('load', loadCompleted);
+    xhr.addEventListener('error', displayLoadingFailure);
+    xhr.addEventListener('timeout', displayLoadingFailure);
     xhr.open('GET', DATA_URL);
     xhr.send();
     container.classList.add('pictures-loading');
