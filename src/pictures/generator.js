@@ -11,12 +11,23 @@ var create = function(picture) {
   element.setAttribute('href', '#photo/' + picture.url);
   var img = element.querySelector('img');
   var image = new Image();
-  image.onload = function() {
-    img.setAttribute('src', picture.url);
+  var timeoutTimer;
+  var stopTimeoutTimer = function() {
+    if (timeoutTimer) {
+      clearTimeout(timeoutTimer);
+      timeoutTimer = null;
+    }
   };
-  image.onerror = function() {
+  var imageLoadingFail = function() {
+    stopTimeoutTimer();
     element.classList.add('picture-load-failure');
   };
+  image.onload = function() {
+    stopTimeoutTimer();
+    img.setAttribute('src', picture.url);
+  };
+  image.onerror = imageLoadingFail;
+  timeoutTimer = setTimeout(imageLoadingFail, 1000); // проверить можно на 20-30мс
   image.src = picture.url;
   element.querySelector('.picture-comments').textContent = picture.comments;
   element.querySelector('.picture-likes').textContent = picture.likes;
