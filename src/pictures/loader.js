@@ -8,17 +8,19 @@ var gallery = require('../gallery');
 
 var DATA_URL = 'http://o0.github.io/assets/json/pictures.json';
 
-var loadCompleted = function() {
+var loadCompleted = function(evt) {
+  var xhr = evt.target;
+  removeHandlers(xhr);
 
   // HTTP-код ответа должен быть 200 или 304
-  if (!utils.isXHRStatusOk(this)) {
+  if (!utils.isXHRStatusOk(xhr)) {
     displayLoadingFailure();
     return;
   }
 
   // парсим и обрабатываем данные
   var pictures = [];
-  var response = this.response;
+  var response = xhr.response;
   try {
     pictures = JSON.parse(response);
     pictures.forEach(function(pic) {
@@ -38,9 +40,16 @@ var loadCompleted = function() {
   gallery.restoreFromHash();
 };
 
-var displayLoadingFailure = function() {
+var displayLoadingFailure = function(evt) {
+  removeHandlers(evt.target);
   container.classList.remove('pictures-loading');
   container.classList.add('pictures-failure');
+};
+
+var removeHandlers = function(xhr) {
+  xhr.removeEventListener('load', loadCompleted);
+  xhr.removeEventListener('error', displayLoadingFailure);
+  xhr.removeEventListener('timeout', displayLoadingFailure);
 };
 
 module.exports = {

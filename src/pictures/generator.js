@@ -20,12 +20,15 @@ var create = function(picture) {
   };
   var imageLoadingFail = function() {
     stopTimeoutTimer();
+    image.onload = image.onerror = null;
     element.classList.add('picture-load-failure');
   };
-  image.onload = function() {
+  var imageLoaded = function() {
     stopTimeoutTimer();
+    image.onload = image.onerror = null;
     img.setAttribute('src', picture.url);
   };
+  image.onload = imageLoaded;
   image.onerror = imageLoadingFail;
   timeoutTimer = setTimeout(imageLoadingFail, 1000); // проверить можно на 20-30мс
   image.src = picture.url;
