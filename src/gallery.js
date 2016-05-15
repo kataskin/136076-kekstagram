@@ -11,6 +11,9 @@ var Gallery = function() {
   this.imageOnLoad = this.imageOnLoad.bind(this);
   this.imageOnError = this.imageOnError.bind(this);
   this.restoreFromHash = this.restoreFromHash.bind(this);
+  this.showNextPicture = this.showNextPicture.bind(this);
+  this.onDocumentKeyDown = this.onDocumentKeyDown.bind(this);
+  this.hideGalleryByClick = this.hideGalleryByClick.bind(this);
   window.addEventListener('hashchange', this.restoreFromHash);
 };
 
@@ -54,11 +57,8 @@ Gallery.prototype.show = function(item) {
   if (this.currentPictureIndex >= 0) {
     this.showPicture();
     if (this.galleryOverlay.classList.contains('invisible')) {
-      this.showNextPicture = this.showNextPicture.bind(this);
       this.galleryImage.addEventListener('click', this.showNextPicture);
-      this.onDocumentKeyDown = this.onDocumentKeyDown.bind(this);
       document.addEventListener('keydown', this.onDocumentKeyDown);
-      this.hideGalleryByClick = this.hideGalleryByClick.bind(this);
       this.galleryOverlay.addEventListener('click', this.hideGalleryByClick);
       this.galleryOverlay.classList.remove('invisible');
     }
